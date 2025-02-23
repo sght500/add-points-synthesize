@@ -59,7 +59,7 @@ Before using this tool, ensure you have the following installed:
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/yourusername/add-points-synthesize.git
+   git clone https://github.com/sght500/add-points-synthesize.git
    cd add-points-synthesize
    ```
 
