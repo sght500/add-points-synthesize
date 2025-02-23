@@ -44,15 +44,15 @@ To use the Speech Service in your project, set the following environment variabl
 ### **On Windows (PowerShell):**
 
 ```powershell
-setx SPEECH_KEY your_subscription_key
-setx SPEECH_REGION your_region
+setx SPEECH_KEY "your_subscription_key"
+setx SPEECH_REGION "your_region"
 ```
 
 ### **On macOS/Linux:**
 
 ```bash
-export SPEECH_KEY=your_subscription_key
-export SPEECH_REGION=your_region
+export SPEECH_KEY="your_subscription_key"
+export SPEECH_REGION="your_region"
 ```
 
 This ensures the application can access your Speech Service.
@@ -65,7 +65,7 @@ If you’d like **free access** to my personal API Key (`SPEECH_KEY` and `SPEECH
 
 ### How it works:
 
-1. Visit my [GitHub Issues](https://github.com/sght500?tab=repositories).
+1. Visit my [GitHub Repositories](https://github.com/sght500?tab=repositories).
 2. Pick an **open issue** from any of my repositories.
 3. Solve it and submit a **Pull Request (PR)**.
 4. Once approved, I’ll send you **temporary access** to my API Key!
