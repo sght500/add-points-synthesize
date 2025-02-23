@@ -71,7 +71,7 @@ Before using this tool, ensure you have the following installed:
 
 3. Set up Microsoft Speech API credentials:
 
-   - Sign up for **Microsoft Azure Speech Services**.
+   - Sign up for **[Microsoft Azure Speech Services](AZURE_SETUP.md)**.
    - Retrieve your **Subscription Key** and **Region**.
    - Export them as environment variables:
      ```bash
