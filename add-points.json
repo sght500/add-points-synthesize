@@ -1,0 +1,48 @@
+{
+    "product": "Add Points and Synthesize",
+    "config_version": 0.3,
+    "mpv_path": "O:\\s\\202x\\mpv\\mpv.exe",
+    "target_languages": [
+        "Arabic", "Chinese", "Dutch", "English", "French", "German", "Indonesian",
+        "Italian", "Japanese", "Korean", "Polish", "Portuguese", "Russian",
+        "Spanish", "Thai", "Turkish", "Vietnamese"
+    ],
+    "min_voice_count": 4,
+    "instructions": [
+        {
+            "Lan": "en",
+            "Language": "English",
+            "Message": "Type your sentences (one per line). Enter an integer greater than or equal to zero to end.\nThat number you type at the end will be the number of lines to be deleted, starting from the end.\nEnter a zero on the first line to change Language. Or enter a nine on the first line to exit."
+        },
+        {
+            "Lan": "es",
+            "Language": "Spanish",
+            "Message": "Escriba sus oraciones (una por línea). Introduzca un número entero mayor o igual a cero para finalizar.\nEse número que escriba al final será el número de líneas que se eliminarán, empezando por el final.\nIntroduzca un cero en la primera línea para cambiar de Idioma. O un nueve en la primera línea para salir."
+        },
+        {
+            "Lan": "zh",
+            "Language": "Chinese",
+            "Message": "写下你的句子（每行一个）。输入一个大于或等于零的整数来完成。\n您在末尾输入的数字将是从末尾开始要删除的行数。\n在第一行输入零即可更改语言。或者在第一行输入九即可退出。"
+        },
+        {
+            "Lan": "ar",
+            "Language": "Arabic",
+            "Message": "اكتب جملتك (جملة واحدة لكل سطر). أدخل عددًا صحيحًا أكبر من أو يساوي الصفر لإنهاء الجملة.\nسيكون الرقم الذي تكتبه في النهاية هو عدد الأسطر التي سيتم حذفها، بدءًا من النهاية.\nأدخل صفرًا في السطر الأول لتغيير اللغة. أو أدخل تسعة في السطر الأول للخروج."
+        },
+        {
+            "Lan": "fr",
+            "Language": "French",
+            "Message": "Tapez vos phrases (une par ligne). Entrez un entier supérieur ou égal à zéro pour terminer.\nLe nombre que vous tapez à la fin correspond au nombre de lignes à supprimer, à partir de la fin.\nEntrez un zéro sur la première ligne pour changer de langue. Ou entrez un neuf sur la première ligne pour quitter."
+        },
+        {
+            "Lan": "de",
+            "Language": "German",
+            "Message": "Geben Sie Ihre Sätze ein (einen pro Zeile). Geben Sie am Ende eine Ganzzahl größer oder gleich Null ein.\nDie Zahl, die Sie am Ende eingeben, ist die Anzahl der zu löschenden Zeilen, beginnend am Ende.\nGeben Sie in der ersten Zeile eine Null ein, um die Sprache zu ändern. Oder geben Sie in der ersten Zeile eine Neun ein, um zu beenden."
+        },
+        {
+            "Lan": "pt",
+            "Language": "Portuguese",
+            "Message": "Escreva suas frases (uma por linha). Digite um número inteiro maior ou igual a zero para finalizar.\nO número que você digitar no final será o número de linhas a serem excluídas, começando do final.\nDigite um zero na primeira linha para alterar o idioma. Ou um nove na primeira linha para sair."
+        }
+    ]
+}
