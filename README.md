@@ -95,8 +95,8 @@ Before using this tool, ensure you have the following installed:
 
 ### Commands
 
-- **Enter ********************`0`******************** on the first line** → Change language.
-- **Enter ********************`9`******************** on the first line** → Exit the program.
+- **Enter `0` on the first line** → Change language.
+- **Enter `9` on the first line** → Exit the program.
 
 ## Configuration
 
@@ -119,7 +119,7 @@ Contributions are welcome! Feel free to submit issues, feature requests, or pull
 
 ## License
 
-This project is licensed under the **AGPL-3.0 License**. See `LICENSE` for details.
+This project is licensed under the **AGPL-3.0 License**. See [LICENSE](LICENSE) for details.
 
 ---
 
