@@ -9,7 +9,8 @@ Author:         Mario Montoya <mariosght500@gmail.com>
 Date:           2025-02-23
 
 Version History:
-- v0.1 (2025-02-23): Get Voices by Locale and Country and save preferences.
+- v0.1 (2025-02-23): Get Voices by Locale and Coutry and save preferences.
+- v0.2 (2025-03-05): Solves #1: Enhancement with higher audio quality and faster playback.
 
 Copyright (C) 2025 Mario Montoya
 
@@ -30,9 +31,13 @@ from collections import defaultdict
 import random
 import os
 import requests
+from requests.exceptions import ChunkedEncodingError, RequestException
 import html
 import platform
 import subprocess
+import threading
+import time
+import datetime
 
 class VoiceList:
     "Get the Locale, LocaleName, Voice, Gender and WordPerMinute. Get the token to get the list."
@@ -102,7 +107,7 @@ class VoiceList:
         col_widths = [max_locale_len, max_name_len, max_count_len]
         
         # Print header
-        header = f"{'Locale'.ljust(col_widths[0])} {'LocaleName'.ljust(col_widths[1])} {'VoiceCount'.rjust(col_widths[2])}"
+        header = f"{'Locale'.ljust(col_widths[0])} {'LocaleName'.ljust(col_widths[1])} {'Voices'.rjust(col_widths[2])}"
         print(header)
         print("=" * len(header))
 
@@ -175,9 +180,10 @@ def prompt_and_save_user_preference(voiceList, filename="preference.json"):
         json.dump({"filter_by": filter_by, "filter_value": filter_value}, file, indent=4)
     return filter_by, filter_value
 
-def process_text(filter_by, filter_value):
+def process_text(filter_by, filter_value) -> tuple[str, list]:
     """Enter the text you want to hear. Add a period and a space to every sentence for proper pausing.
-    Enter a zero on the first line to change Language. Or enter a nine on the first line to exit."""
+    Enter a zero on the first line to change Language. Or enter a nine on the first line to exit.
+    Process user input and split it into three parts based on configured line counts."""
     
     if filter_by == "Locale":
         lang_code = filter_value.split("-")[0]  # Extract the first two letters of locale
@@ -199,31 +205,29 @@ def process_text(filter_by, filter_value):
     
     # If the first line is a digit (0-9), return it immediately
     if first_line.isdigit():
-        return first_line, ""
+        return first_line, []
 
     # Otherwise, process the text
-    if first_line.endswith("."):
-        sentences.append(first_line + " ")
-    else:
-        sentences.append(first_line + ". ")
+    sentences.append(first_line + " " if first_line.endswith(".") else first_line + ". ")
 
     while True:
         line = input().strip()
         if line.isdigit():  # If the line is a number, break the loop
             break
-        if line.endswith("."):
-            sentences.append(line + " ")
-        else:
-            sentences.append(line + ". ")
+        sentences.append(line + " " if line.endswith(".") else line + ". ")
 
     # Delete the last n lines
     n = int(line)
     sentences = sentences[:-n or None]
 
-    result = "\n".join(sentences)
+    # Split sentences into dynamic parts based on parts['limits']
+    results = []
+    start = 0
+    for limit in parts['limits']:
+        results.append("\n".join(sentences[start:start + limit]))
+        start += limit
     
-    return first_line, result
-
+    return first_line, results
 
 def select_voice(filter_by, filter_value, filename="all_voices.json"):
     """Randomly select a voice from the filtered voices."""
@@ -247,10 +251,13 @@ def select_voice(filter_by, filter_value, filename="all_voices.json"):
 
     # Randomly select a voice
     voice = random.choice(filtered_voices)['ShortName']
+    # voice = "pt-BR-MacerioMultilingualNeural"
     print(f"Selected voice: {voice}")
     return voice
 
-def text_to_mp3(text, voice, filename="output.mp3"):
+def text_to_audio(text, voice, filename, audio_format):
+    """Converts the text to speech with the voice and audio format provided.
+    Saves the speech audio to the filename provided."""
     key = os.getenv('SPEECH_KEY')
     region = os.getenv('SPEECH_REGION')
 
@@ -258,28 +265,41 @@ def text_to_mp3(text, voice, filename="output.mp3"):
     headers = {
         "Ocp-Apim-Subscription-Key": key,
         "Content-Type": "application/ssml+xml",
-        "X-Microsoft-OutputFormat": "audio-16khz-32kbitrate-mono-mp3"
+        "X-Microsoft-OutputFormat": audio_format,
+        "Connection": "keep-alive",  # Prevents premature disconnection
+        "User-Agent": "Mozilla/5.0"  # Helps some APIs accept the request
     }
     
     # Escape special XML characters (& -> &amp;, < -> &lt;, > -> &gt;)
     safe_text = html.escape(text)
-
-    data = f"<speak version='1.0' xml:lang='en-US'><voice xml:lang='pt-BR' name='{voice}'>{safe_text}</voice></speak>"
+    locale = voice[:5]  # en-US-AvaMultilingualNeural (Locale is the first 5 characters)
+    data = f"<speak version='1.0' xml:lang='{ \
+        locale}'><voice xml:lang='{ \
+            locale}' name='{ \
+                voice}'><lang xml:lang='{ \
+                    locale}'>{safe_text}</lang></voice></speak>"
 
     if os.path.exists(filename):
         os.remove(filename)
 
-    response = requests.post(url, headers=headers, data=data)
-    if response.status_code == 200:
-        with open(filename, "wb") as f:
-            f.write(response.content)
-    else:
-        print("Error:", response.text)  # Print error details
+    try:
+        response = requests.post(url, headers=headers, data=data)
+        if response.status_code == 200:
+            with open(filename, "wb") as f:
+                f.write(response.content)
+        else:
+            print("Error:", response.text)  # Print error details
+    except ChunkedEncodingError as e:
+        print(f"ChunkedEncodingError: {e}")
+    except RequestException as e:
+        print(f"RequestException: {e}")
+    except Exception as e:
+        print(f"Exception: {e}")
 
-def play_mp3(filename="output.mp3"):
-    # MPV arguments to not use GUI
+def play_audio(filename):
+    # MPV arguments not to use GUI
     args = ['--terminal=no', '--force-window=no', filename]
-    # Play the MP3 file with MPV
+    # Play the audio file with MPV
     if platform.system() == "Windows":
         subprocess.run([mpv_path] + args)
     elif platform.system() == "Darwin" or platform.system() == "Linux":  # macOS or Linux
@@ -287,20 +307,118 @@ def play_mp3(filename="output.mp3"):
     else:
         raise OSError("Unsupported operating system")
 
+def get_audio_extension(audio_format: str) -> str:
+    """Returns the suitable filename extension for a given audio format."""
+    
+    # Mapping of known formats to their file extensions
+    format_map = {
+        "webm": "webm",  # WebM should be checked first
+        "opus": "ogg",  # Opus is usually in OGG containers
+        "mp3": "mp3",
+        "amr": "amr",
+        "g722": "g722",
+        "pcm": "wav",  # PCM raw audio often uses .wav
+        "alaw": "raw",
+        "mulaw": "raw",
+        "truesilk": "silk",
+    }
+
+    # Check for format keys in order of priority
+    for key in format_map:
+        if key in audio_format:
+            return format_map[key]
+
+    return "bin"  # Default to .bin if no match is found
+
+def generate_audio(results, voice, timing_data):
+    """Background thread to generate audio for each part and signal when it's ready."""
+    for i, result in enumerate(results, start=1):
+        if result.strip():
+            extension = get_audio_extension(parts['formats'][i - 1])
+            text_to_audio(result, voice, f"part{i}.{extension}", parts['formats'][i - 1])
+            part_ready[i - 1].set()  # Signal that this part is ready
+            timing_data[f"buffer_start_{i}"] = time.time()  # Buffer for this part starts now
+
+def play_audio_thread(results, timing_data):
+    """Second thread to play each audio part when they are ready."""
+    for i, result in enumerate(results, start=1):
+        if result.strip():
+            extension = get_audio_extension(parts['formats'][i - 1])
+            timing_data[f"waiting_start_{i}"] = time.time()  # Waiting time for this part starts now
+            part_ready[i - 1].wait()  # Wait for the corresponding part to be ready
+            timing_data[f"waiting_stop_{i}"] = time.time()  # Waiting time for this part ends now
+            timing_data[f"buffer_stop_{i}"] = timing_data[f"waiting_stop_{i}"]  # Buffer for this part ends now
+            play_audio(f"part{i}.{extension}")
+
+def generate_and_play_audio_double_thread(results, voice):
+    """Generate the audio in one thread and play the audio in another thread.
+    Audio is sequentially generated part by part, signaling when each part is ready.
+    The second thread plays back each part when available, waiting for each part signal."""
+    global part_ready
+    part_ready = [threading.Event() for _ in results]  # Create an event for each part
+    
+    timing_data = {
+        "timestamp": datetime.datetime.now()
+    }
+    generate_audio_thread = threading.Thread(target=generate_audio, args=(results, voice, timing_data))
+    generate_audio_thread.start()
+    play_audio_thread(results, timing_data)
+    return timing_data
+
+def load_history_groups():
+    """Load processing times from a JSON file, or return default values."""
+    try:
+        with open("processing_times.json", "r", encoding="utf-8") as file:
+            return json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}  # Default empty dictionary
+
+def save_history_groups(history):
+    """Save updated processing times to a JSON file."""
+    with open("processing_times.json", "w", encoding="utf-8") as file:
+        json.dump(history, file, indent=4)
+
+def log_processing_times(results, timing_data, history_group):
+    """Save the processing times in the history group specified."""
+    # Calculates the actual sizes, the waiting and the buffer times for each part of the parts
+    actual_size, waiting_time, buffer_time = [], [], []
+    for i, result in enumerate(results, start=1):
+        if result.strip():
+            actual_size.append(result.count("\n") + 1)
+            waiting_time.append(timing_data[f"waiting_stop_{i}"] - timing_data[f"waiting_start_{i}"])
+            buffer_time.append(timing_data[f"buffer_stop_{i}"] - timing_data[f"buffer_start_{i}"])
+
+    history = load_history_groups()
+    hg = history.get(history_group, [])
+    hg.append({
+        "timestamp": str(timing_data["timestamp"]),
+        "parts": parts,
+        "actual_size": actual_size,
+        "waiting_time": waiting_time,
+        "buffer_time": buffer_time
+    })
+    history[history_group] = hg
+    save_history_groups(history)
+
 def show_license_notice():
-    print("=" * 60)
-    print(" Add Points and Synthesize - Open Source Speech Tool")
-    print(" Licensed under AGPL-3.0 - See https://www.gnu.org/licenses/")
-    print("=" * 60)
-    print()
+    print("=" * 25)
+    print("Add Points and Synthesize")
+    print(" Licensed under AGPL-3.0 ")
+    print("=" * 25)
 
 def read_config():
     # Load JSON configuration file
     with open('add-points.json', 'r', encoding="utf-8") as file:
         config = json.load(file)
-    global mpv_path, target_languages, min_voice_count, instructions
-    mpv_path, target_languages, min_voice_count = config['mpv_path'], config['target_languages'], config['min_voice_count']
-    instructions = config['instructions']
+    global mpv_path, target_languages, min_voice_count
+    global instructions, parts
+    mpv_path, target_languages = config['mpv_path'], config['target_languages'], 
+    min_voice_count, instructions = config['min_voice_count'], config['instructions']
+    parts, formats = config['parts'], config['formats']
+    part_formats = []
+    for quality in parts['qualities']:
+        part_formats.append(formats[quality])
+    parts['formats'] = part_formats
 
 def main():
     voiceList = VoiceList(target_languages, min_voice_count)
@@ -314,7 +432,7 @@ def main():
 
     # Main loop
     while True:
-        first_line, result = process_text(filter_by, filter_value)
+        first_line, results = process_text(filter_by, filter_value)
         
         if first_line == "0":
             # Change language preference
@@ -326,16 +444,16 @@ def main():
             # Exit the program
             break
 
-        elif result == "":
+        elif results[0] == "":
             print("You deleted all the lines. Try a lower number.")
             continue
 
         voice = select_voice(filter_by, filter_value)
         if voice:
-            text_to_mp3(result, voice)
-            play_mp3()
+            td = generate_and_play_audio_double_thread(results, voice)
+            log_processing_times(results, td, "hg_001")
 
 if __name__ == "__main__":
     show_license_notice()  # Display the license notice at startup
-    read_config()
+    read_config()  # Read the configuration file 'add-points.json'
     main()
