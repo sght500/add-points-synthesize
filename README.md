@@ -51,7 +51,7 @@ The tool currently supports the following languages (with at least 4 voice varia
 Before using this tool, ensure you have the following installed:
 
 - **Python 3.x**
-- **Termux (for Android users)** (Optional, if running on a mobile device)
+- **[Termux (for Android users)](TERMUX_SETUP.md)** (Optional, if running on a mobile device)
 - **MPV media player** (Required for audio playback)
 
 ### Setup
