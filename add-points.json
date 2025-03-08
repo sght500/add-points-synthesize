@@ -1,13 +1,13 @@
 {
     "product": "Add Points and Synthesize",
-    "config_version": 0.3,
+    "config_version": 0.6,
     "mpv_path": "O:\\s\\202x\\mpv\\mpv.exe",
     "target_languages": [
         "Arabic", "Chinese", "Dutch", "English", "French", "German", "Indonesian",
         "Italian", "Japanese", "Korean", "Polish", "Portuguese", "Russian",
         "Spanish", "Thai", "Turkish", "Vietnamese"
     ],
-    "min_voice_count": 4,
+    "min_voice_count": 3,
     "instructions": [
         {
             "Lan": "en",
@@ -35,6 +35,11 @@
             "Message": "Tapez vos phrases (une par ligne). Entrez un entier supérieur ou égal à zéro pour terminer.\nLe nombre que vous tapez à la fin correspond au nombre de lignes à supprimer, à partir de la fin.\nEntrez un zéro sur la première ligne pour changer de langue. Ou entrez un neuf sur la première ligne pour quitter."
         },
         {
+            "Lan": "ru",
+            "Language": "Russian",
+            "Message": "Введите предложения (по одному в строке). Введите целое число, большее или равное нулю, чтобы закончить.\nЧисло, которое вы введете в конце, будет количеством строк, которые нужно удалить, начиная с конца.\nВведите ноль в первой строке, чтобы изменить язык. Или введите девять в первой строке, чтобы выйти."
+        },
+        {
             "Lan": "de",
             "Language": "German",
             "Message": "Geben Sie Ihre Sätze ein (einen pro Zeile). Geben Sie am Ende eine Ganzzahl größer oder gleich Null ein.\nDie Zahl, die Sie am Ende eingeben, ist die Anzahl der zu löschenden Zeilen, beginnend am Ende.\nGeben Sie in der ersten Zeile eine Null ein, um die Sprache zu ändern. Oder geben Sie in der ersten Zeile eine Neun ein, um zu beenden."
@@ -44,5 +49,13 @@
             "Language": "Portuguese",
             "Message": "Escreva suas frases (uma por linha). Digite um número inteiro maior ou igual a zero para finalizar.\nO número que você digitar no final será o número de linhas a serem excluídas, começando do final.\nDigite um zero na primeira linha para alterar o idioma. Ou um nove na primeira linha para sair."
         }
-    ]
+    ],
+    "parts": {
+        "limits": [4, 12, 34, 50, 100, 100, 100],
+        "qualities": ["high", "high", "high", "high", "high", "high", "high"]
+    },
+    "formats": {
+        "low": "ogg-16khz-16bit-mono-opus",
+        "high": "ogg-24khz-16bit-mono-opus"
+    }
 }
